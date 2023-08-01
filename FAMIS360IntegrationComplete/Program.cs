@@ -24,7 +24,7 @@ namespace FAMIS360IntegrationComplete
         #region api calls
 
         /// <summary>
-        /// assumes you didn't set anything and you want to set it now.
+        /// Get you a Bearer Token to make API calls
         /// </summary>
         /// <param name="username">username to use for login</param>
         /// <param name="password">password to use for login</param>
@@ -54,12 +54,36 @@ namespace FAMIS360IntegrationComplete
                     throw e;
                 }
 
-
             }
             else
             {
                 
 
+            }
+        }
+
+        private bool refreshtoken()
+        {
+
+
+            try
+            {
+                //call the refresh function and replace the logincreds object.
+                login.refreshobject thisrefresh = new login.refreshobject(logincreds.Item.refresh_token);
+                login.loginresponse.Rootobject lt = new login.loginresponse.Rootobject();
+                lt = JsonConvert.DeserializeObject<login.loginresponse.Rootobject>(apifunctions.postobject(logincreds.Item.access_token, url + "/api/refreshtoken", thisrefresh, out int httpcode, proxyserver, timeout));
+                logincreds = lt;
+                return true;
+            }
+            catch (NullReferenceException)
+            {
+                getlogintoken(null, null, null);
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                return false;
             }
         }
 
