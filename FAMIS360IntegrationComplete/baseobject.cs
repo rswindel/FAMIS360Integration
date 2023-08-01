@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace FAMIS360IntegrationComplete
 {
+    /// <summary>
+    /// This is what the api will return on some api call.
+    /// </summary>
     internal class baseobject
     {
         [JsonProperty("@odata.context")]
