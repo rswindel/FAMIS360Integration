@@ -1,0 +1,45 @@
+[
+  {
+    "Payment_Term_ID": "Net_30",
+    "Supplier_Name": "TacoTown Studios",
+    "Supplier_Landline_Phones": "+1 (555) 5555555",
+    "Supplier_ID": "SUP-1000001",
+    "Supplier_Status": "Active",
+    "country": "United States of America",
+    "city": "Ames",
+    "postalCode": "50010",
+    "addressLine1": "",
+    "addressLine2": "",
+    "State_Province": "Iowa",
+    "State_ISO_Code": "IA"
+  },
+  {
+    "Payment_Term_ID": "Net_30",
+    "Supplier_Name": "ACCRUENT LLC",
+    "Supplier_Landline_Phones": "+1 (512) 8610726",
+    "Supplier_ID": "SUP-0002214",
+    "Supplier_Status": "Active",
+    "country": "United States of America",
+    "city": "DALLAS",
+    "postalCode": "75312-3636",
+    "addressLine1": "DEPT 3636",
+    "addressLine2": "PO BOX 123636",
+    "State_Province": "Texas",
+    "State_ISO_Code": "TX"
+  },
+  {
+    "Payment_Term_ID": "Net_30",
+    "Supplier_Name": "Iowa State University FPM",
+    "Supplier_Landline_Phones": "+1 (515) 2944111",
+    "Supplier_ID": "SUP-1000000",
+    "Supplier_Status": "Active",
+    "country": "United States of America",
+    "city": "Ames",
+    "postalCode": "50011",
+    "addressLine1": "108 General Services Building",
+    "addressLine2": "700 Wallace Road",
+    "State_Province": "Iowa",
+    "State_ISO_Code": "IA"
+  },
+
+]

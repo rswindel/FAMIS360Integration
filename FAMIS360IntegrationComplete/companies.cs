@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,7 +39,7 @@ namespace FAMIS360IntegrationComplete
             public bool SupplierFlag { get; set; }
             public bool SubcontractorAuthFlag { get; set; }
             public bool W9OnFileFlag { get; set; }
-            public int CurrencyInstallId { get; set; }
+            public int? CurrencyInstallId { get; set; }
             public string Addr2 { get; set; }
             public string Fax { get; set; }
             public string Website { get; set; }
@@ -46,7 +47,7 @@ namespace FAMIS360IntegrationComplete
             public string Email { get; set; }
             public string PagerNumber { get; set; }
             public string PrimaryContactName { get; set; }
-            public int CategoryId { get; set; }
+            public int? CategoryId { get; set; }
             public int? SecondaryCategoryId { get; set; }
             public string SicCode { get; set; }
             public string InternalVendorCode { get; set; }
@@ -67,14 +68,14 @@ namespace FAMIS360IntegrationComplete
             public string RemAddr3 { get; set; }
             public string RemCity { get; set; }
             public string RemZip { get; set; }
-            public int RemStateId { get; set; }
+            public int? RemStateId { get; set; }
             public string Description { get; set; }
             public bool VisitAutoCreateFlag { get; set; }
             public bool DebtorFlag { get; set; }
             public bool LandOwnerFlag { get; set; }
             public bool MeterSiteFlag { get; set; }
             public bool ExtMasterCompanyFlag { get; set; }
-            public Companytype CompanyType { get; set; }
+            public companytype CompanyType { get; set; }
             public Currency Currency { get; set; }
             public Companycategory CompanyCategory { get; set; }
             public object SecondaryCategory { get; set; }
@@ -82,9 +83,35 @@ namespace FAMIS360IntegrationComplete
             public object ShippingMethod { get; set; }
             public object TypeOfAccess { get; set; }
             public object CompanyFreeOnBoard { get; set; }
+
+            /// <summary>
+            /// Checks to see if there are any changes between two companies
+            /// </summary>
+            /// <param name="other">Company to compare</param>
+            /// <returns>True if differences are detected</returns>
+            public bool hasChanges(company other)
+            {
+                bool result = false;
+
+
+                return result;
+            }
+
+            /// <summary>
+            /// Merges two company records into one.
+            /// </summary>
+            /// <param name="other">changes to merge into this company</param>
+            /// <returns></returns>
+            public company mergeChanges(company other)
+            {
+                company retval = JsonConvert.DeserializeObject<company>(JsonConvert.SerializeObject(this));
+
+                return retval;
+            }
+
         }
 
-        public class Companytype
+        public class companytype
         {
             public int Id { get; set; }
             public string Desc { get; set; }
