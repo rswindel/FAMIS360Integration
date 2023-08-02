@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/FAMIS360IntegrationComplete/famis360.resx
+/FAMIS360IntegrationDemo/famis360.resx
+/FAMIS360IntegrationComplete/f360Resource.resx
+/FAMIS360IntegrationDemo/f360Resource.resx
