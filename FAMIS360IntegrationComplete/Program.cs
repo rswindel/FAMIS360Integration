@@ -22,6 +22,10 @@ namespace FAMIS360IntegrationComplete
         private static List<countries> countriesList;
         private static List<states> statesList;
         private static List<paymentterm> paymenttermList;
+        private static List<workday> workdayList;
+
+        private static List<company> newCompanies = new List<company>();
+        private static List<company> updatedCompanies = new List<company>();
 
         static async Task Main(string[] args)
         {
@@ -30,13 +34,106 @@ namespace FAMIS360IntegrationComplete
             password = f360Resource.password; //Password for connecting to FAMIS360
             timeout = 300000; //Timeout for API functions.  This is probalby need as some endpoint take longer to return.
 
-            Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Getting Login Token");
-            getlogintoken(null, null, null);
-            Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Finished getting Login Token");
+            //We first need to get logged into FAMIS360
+            try
+            {
+                Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Getting Login Token");
+                getlogintoken(null, null, null);
+                Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Finished getting Login Token");
+            }
+            catch (Exception e)
+            {
 
-            getFamisData();
-            //await getFamisDataAsync();
+                throw e;
+            }
 
+            //Now we can get all our data need for posting/patching Companies in FAMIS 360
+            try
+            {
+                getFamisData();
+                //await getFamisDataAsync();
+                workdayList = getWorkdayData();
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
+
+            //Next steps are to look over all your incoming data to see what needs to go to FAMIS360
+            foreach(var record in workdayList)
+            {
+                //we will convert the incoming data to a company record
+                company incoming = new company();
+
+                //Defualt values that are required by the API to post or patch.
+                incoming.CurrencyInstallId = 1; 
+                incoming.TypeId = 1;
+
+
+                incoming.ExternalId = record.Supplier_ID; //This is the unique idenifier from Workday
+                incoming.Name = record.Supplier_Name;
+                incoming.Phone = record.Supplier_Landline_Phones;
+                incoming.City = record.city;
+                incoming.Addr1 = record.addressLine1;
+                incoming.Addr2 = record.addressLine2;
+                incoming.Zip = record.postalCode;
+
+                if(record.Supplier_Status == "Active")
+                    incoming.ActiveFlag = true;
+                else
+                    incoming.ActiveFlag = false;
+                
+                //We have to find the Country ID out of data we got from FAMIS360
+                incoming.CountryId = countriesList.Find(x => x.Name.ToUpper() == record.country.ToUpper()).Id;
+
+                //now that we have the countryId, we can use that to help us get the stateId
+                incoming.StateId = statesList.Find(x => x.CountryId == incoming.CountryId && x.Abbreviation == record.State_ISO_Code).Id;
+
+                //Finding the payment term we just need to search for it.
+                incoming.PaymentTermId = paymenttermList.Find(x => x.Name == record.Payment_Term_ID.ToUpper()).Id;
+
+                //With the company converted to a FAMIS360 record we can check if it's already in FAMIS360.
+                //If we find it we need to check if there are any changes.
+                company exsiting = companyList.Find(x => x.ExternalId == incoming.ExternalId);
+                if(exsiting != null)
+                {
+                    if(exsiting.hasChanges(incoming))
+                    {
+                        company merged = exsiting.mergeChanges(incoming);
+                        merged.UpdateDate = DateTime.Now;
+                        updatedCompanies.Add(merged);
+                    }
+                }
+                else
+                {
+                    //Could not find company so It's is a new company that needs to be created.
+                    incoming.UpdateDate = DateTime.Now;
+                    newCompanies.Add(incoming);
+                }
+
+            }
+
+            //last step is to upload new records and patch any changes
+            foreach(var upload in updatedCompanies)
+            {
+                try
+                {
+                    Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Patching Company {upload.Name}");
+                    patchcompanies(upload);
+                }
+                catch(Exception ex) { Console.WriteLine(ex.Message); }
+            }
+
+            foreach(var upload in newCompanies)
+            {
+                try
+                {
+                    Console.WriteLine($"{DateTime.Now.ToLocalTime()} - Posting Company {upload.Name}");
+                    postcompanies(upload);
+                }
+                catch (Exception ex) { Console.WriteLine(ex.Message); }
+            }
 
 
 
@@ -62,7 +159,11 @@ namespace FAMIS360IntegrationComplete
         }
 
         
-
+        public static List<workday> getWorkdayData()
+        {
+            string jsonFile = File.ReadAllText("workday.json");
+            return JsonConvert.DeserializeObject<List<workday>>(jsonFile);
+        }
 
         #region api calls
 
@@ -271,6 +372,56 @@ namespace FAMIS360IntegrationComplete
                 throw new Exception(newerror.Message);
             }
             return retval;
+        }
+
+
+        public static company patchcompanies(company thing)
+        {
+            try
+            {
+                company lt = new company();
+                string updatetag = string.Format("?key={0}", thing.Id);
+                if (logincreds.Item.expires.CompareTo(DateTime.UtcNow) <= 0)
+                    refreshtoken();
+                string result = apifunctions.patchobject(logincreds.Item.access_token, url + companies.url + updatetag, thing.toJsonString(), out int httpcode, proxyserver, timeout, jsonsettingsout); ;
+
+                if (httpcode.ToString() == "200")
+                    lt = JsonConvert.DeserializeObject<company>(result);
+                else
+                {
+                    error.httperror newerror = JsonConvert.DeserializeObject<error.httperror>(result);
+                    throw new Exception(newerror.Message);
+                }
+                return lt;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public static company postcompanies(company thing)
+        {
+            try
+            {
+                company lt = new company();
+
+                string temp = apifunctions.postobject(logincreds.Item.access_token, url + companies.url, thing.toJsonString(), out int httpcode, proxyserver, timeout, jsonsettingsout);
+                lt = JsonConvert.DeserializeObject<company>(temp);
+                //if this isn't a companies, it errored, so throw it as an error.
+                if (httpcode.ToString() == "200")
+                    lt = JsonConvert.DeserializeObject<company>(temp);
+                else
+                {
+                    error.httperror newerror = JsonConvert.DeserializeObject<error.httperror>(temp);
+                    throw new Exception(newerror.Message);
+                }
+                return lt;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
 
