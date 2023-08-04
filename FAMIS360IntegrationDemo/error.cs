@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace FAMIS360IntegrationDemo
 {
+    /// <summary>
+    /// Class for if we get an error from the API
+    /// </summary>
     public class error
     {
 

@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace FAMIS360IntegrationDemo
 {
+    /// <summary>
+    /// This class contains all values need for getting and using bearer token
+    /// </summary>
     public class login
     { 
             public class loginobject
